@@ -11,21 +11,21 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import permission_required
 
 
-@permission_required('relationship_app.canaddbook')
+@permission_required('relationship_app.can_add_book')
 def add_book(request):
-    return HttpResponse("Add book view (requires canaddbook)")
+    return HttpResponse("Add book view (requires can_add_book)")
 
 
-@permission_required('relationship_app.canchangebook')
+@permission_required('relationship_app.can_change_book')
 def edit_book(request, pk):
     _ = get_object_or_404(Book, pk=pk)
-    return HttpResponse(f"Edit book {pk} view (requires canchangebook)")
+    return HttpResponse(f"Edit book {pk} view (requires can_change_book)")
 
 
-@permission_required('relationship_app.candeletebook')
+@permission_required('relationship_app.can_delete_book')
 def delete_book(request, pk):
     _ = get_object_or_404(Book, pk=pk)
-    return HttpResponse(f"Delete book {pk} view (requires candeletebook)")
+    return HttpResponse(f"Delete book {pk} view (requires can_delete_book)")
 
 
 def is_admin(user):
