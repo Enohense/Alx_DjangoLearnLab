@@ -6,6 +6,26 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import permission_required
+
+
+@permission_required('relationship_app.canaddbook')
+def add_book(request):
+    return HttpResponse("Add book view (requires canaddbook)")
+
+
+@permission_required('relationship_app.canchangebook')
+def edit_book(request, pk):
+    _ = get_object_or_404(Book, pk=pk)
+    return HttpResponse(f"Edit book {pk} view (requires canchangebook)")
+
+
+@permission_required('relationship_app.candeletebook')
+def delete_book(request, pk):
+    _ = get_object_or_404(Book, pk=pk)
+    return HttpResponse(f"Delete book {pk} view (requires candeletebook)")
 
 
 def is_admin(user):
