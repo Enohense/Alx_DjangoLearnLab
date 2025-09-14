@@ -140,20 +140,14 @@ LOGIN_REDIRECT_URL = 'list-books'   # after successful login
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
 
-
 INSTALLED_APPS = [
     # ...
-    "accounts",               # <-- add this
-    "django.contrib.admin",
-    "django.contrib.auth",
+    "bookshelf",
     # ...
 ]
 
-# Use custom user model
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "bookshelf.CustomUser"
 
-# Media (for ImageField)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

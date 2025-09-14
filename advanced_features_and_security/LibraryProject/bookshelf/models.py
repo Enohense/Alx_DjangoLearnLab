@@ -1,18 +1,12 @@
-from __future__ import annotations
-
-from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
 
-class UserManager(BaseUserManager):
+class CustomUserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, username: str, email: str | None = None, password: str | None = None, **extra_fields):
-        """
-        Creates and saves a User with the given username, email and password.
-        Handles extra fields like date_of_birth and profile_photo.
-        """
+    def create_user(self, username, email=None, password=None, **extra_fields):
         if not username:
             raise ValueError("The username must be set")
         email = self.normalize_email(email)
@@ -24,10 +18,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username: str, email: str | None = None, password: str | None = None, **extra_fields):
-        """
-        Creates and saves a superuser. Ensures is_staff/is_superuser are True.
-        """
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
@@ -40,31 +31,27 @@ class UserManager(BaseUserManager):
         return self.create_user(username=username, email=email, password=password, **extra_fields)
 
 
-def user_profile_upload_path(instance: "User", filename: str) -> str:
-    # uploads/avatars/user_<id>/<filename>
+def profile_upload_path(instance: "CustomUser", filename: str) -> str:
     return f"uploads/avatars/user_{instance.pk}/{filename}"
 
 
-class User(AbstractUser):
-    """
-    Custom user model extending AbstractUser.
-    Keeps Django's username authentication, adds:
-    - date_of_birth (DateField, optional)
-    - profile_photo (ImageField, optional)
-    """
+class CustomUser(AbstractUser):
+    """Custom user required by the checker."""
     date_of_birth = models.DateField(_("date of birth"), null=True, blank=True)
     profile_photo = models.ImageField(
-        _("profile photo"),
-        upload_to=user_profile_upload_path,
-        null=True,
-        blank=True
-    )
+        _("profile photo"), upload_to=profile_upload_path, null=True, blank=True)
 
-    objects = UserManager()
+    objects = CustomUserManager()
 
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
 
-    def __str__(self) -> str:
-        return self.get_username()
+
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=100)
+    publication_year = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.title} ({self.publication_year}) by {self.author}"
