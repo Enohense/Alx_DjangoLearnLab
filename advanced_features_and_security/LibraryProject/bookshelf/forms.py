@@ -2,6 +2,13 @@ from django import forms
 from .models import Book
 
 
+class ExampleForm(forms.Form):
+    """Simple form used to demonstrate CSRF + input validation."""
+    name = forms.CharField(max_length=50, required=True, strip=True)
+    message = forms.CharField(
+        max_length=500, required=False, widget=forms.Textarea)
+
+
 class BookSearchForm(forms.Form):
     q = forms.CharField(max_length=100, required=False, strip=True)
 
