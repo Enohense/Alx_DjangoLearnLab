@@ -151,3 +151,58 @@ AUTH_USER_MODEL = "bookshelf.CustomUser"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# --- SECURITY: turn off debug in production
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower(
+) == "true"  # set False in prod
+
+# Allow hosts via env (example defaults for local/dev)
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+
+# --- SECURITY MIDDLEWARE (should already be present)
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    # CSP middleware (see config below). Keep it early in the list, after SecurityMiddleware.
+    "csp.middleware.CSPMiddleware",            # ← requires: pip install django-csp
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# --- BROWSER-SIDE PROTECTIONS
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+# NOTE: SECURE_BROWSER_XSS_FILTER is deprecated in modern Django/Chrome,
+# but included here to satisfy the exercise requirements.
+SECURE_BROWSER_XSS_FILTER = True
+
+# --- COOKIE SECURITY (HTTPS‐only in production)
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Optional hardening (good practice in real prod):
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+# SECURE_SSL_REDIRECT = True
+
+# --- CONTENT SECURITY POLICY (django-csp)
+INSTALLED_APPS = [
+    # ...
+    "bookshelf",  # your app
+    "csp",        # ← django-csp (pip install django-csp)
+    # ...
+]
+
+# Keep CSP strict; loosen only if you add trusted CDNs.
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'",)
+# allow inline data URIs for small imgs/icons if needed
+CSP_IMG_SRC = ("'self'", "data:")
+CSP_CONNECT_SRC = ("'self'",)
+CSP_FONT_SRC = ("'self'", "data:")
