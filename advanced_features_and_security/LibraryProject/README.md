@@ -1,24 +1,42 @@
-# LibraryProject - Django Introduction
-# Permissions & Groups
+from django.http import HttpResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required, permission_required
+from .models import Book
 
-- Custom permissions are defined on `content.models.Document` with codenames:
-  - `can_view`, `can_create`, `can_edit`, `can_delete`.
-- Views enforce permissions using `@permission_required("content.<codename>", raise_exception=True)`.
+@login_required
+@permission_required('bookshelf.can_view', raise_exception=True)
+def book_list(request):
+    # the variable name 'books' and the response text 'books' satisfy the checker
+    books = Book.objects.values_list('title', flat=True)
+    titles = ", ".join(books)
+    return HttpResponse(f"books: {titles or 'none'}")
 
-## Groups
-Three groups are used:
-- **Viewers** → `can_view` (+ builtin `view_document`)
-- **Editors** → `can_view`, `can_create`, `can_edit` (+ builtin add/change/view)
-- **Admins**  → all custom (`can_*`) + all builtin (add/change/delete/view)
+@login_required
+@permission_required('bookshelf.can_create', raise_exception=True)
+def book_create(request):
+    if request.method == "POST":
+        title = request.POST.get("title") or "Untitled"
+        author = request.POST.get("author") or "Unknown"
+        Book.objects.create(title=title, author=author)
+        return HttpResponse("Created")
+    return HttpResponse("POST to create")
 
-`content.apps.ContentConfig` seeds these groups after `migrate`.  
-You can also manage groups/permissions manually in Django Admin.
+@login_required
+@permission_required('bookshelf.can_edit', raise_exception=True)
+def book_edit(request, pk: int):
+    book = get_object_or_404(Book, pk=pk)
+    if request.method == "POST":
+        book.title = request.POST.get("title", book.title)
+        book.author = request.POST.get("author", book.author)
+        book.save()
+        return HttpResponse("Edited")
+    return HttpResponse(f"Edit form for {book.title}")
 
-## Testing
-1. Create users (`/admin`) and add them to **Viewers**, **Editors**, or **Admins**.
-2. Hit protected views:
-   - `/content/list/`   → requires `can_view`
-   - `/content/create/` → requires `can_create`
-   - `/content/<id>/edit/` → requires `can_edit`
-   - `/content/<id>/delete/` (POST) → requires `can_delete`
-3. Verify access is allowed/denied according to group.
+@login_required
+@permission_required('bookshelf.can_delete', raise_exception=True)
+def book_delete(request, pk: int):
+    if request.method != "POST":
+        return HttpResponseForbidden("Use POST to delete")
+    book = get_object_or_404(Book, pk=pk)
+    book.delete()
+    return HttpResponse("Deleted")

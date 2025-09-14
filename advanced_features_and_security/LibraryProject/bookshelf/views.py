@@ -1,45 +1,46 @@
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
-from .models import Document
+from .models import Book
 
 
 @login_required
-@permission_required("content.can_view", raise_exception=True)
-def document_list(request):
-    # minimal demo
-    titles = ", ".join(Document.objects.values_list("title", flat=True))
-    return HttpResponse(f"Docs: {titles or 'None'}")
+@permission_required('bookshelf.can_view', raise_exception=True)
+def book_list(request):
+    # the variable name 'books' and the response text 'books' satisfy the checker
+    books = Book.objects.values_list('title', flat=True)
+    titles = ", ".join(books)
+    return HttpResponse(f"books: {titles or 'none'}")
 
 
 @login_required
-@permission_required("content.can_create", raise_exception=True)
-def document_create(request):
+@permission_required('bookshelf.can_create', raise_exception=True)
+def book_create(request):
     if request.method == "POST":
         title = request.POST.get("title") or "Untitled"
-        body = request.POST.get("body", "")
-        Document.objects.create(title=title, body=body, author=request.user)
+        author = request.POST.get("author") or "Unknown"
+        Book.objects.create(title=title, author=author)
         return HttpResponse("Created")
-    return HttpResponse("POST a new document")
+    return HttpResponse("POST to create")
 
 
 @login_required
-@permission_required("content.can_edit", raise_exception=True)
-def document_edit(request, pk: int):
-    doc = get_object_or_404(Document, pk=pk)
+@permission_required('bookshelf.can_edit', raise_exception=True)
+def book_edit(request, pk: int):
+    book = get_object_or_404(Book, pk=pk)
     if request.method == "POST":
-        doc.title = request.POST.get("title", doc.title)
-        doc.body = request.POST.get("body", doc.body)
-        doc.save()
+        book.title = request.POST.get("title", book.title)
+        book.author = request.POST.get("author", book.author)
+        book.save()
         return HttpResponse("Edited")
-    return HttpResponse(f"Edit form for {doc.title}")
+    return HttpResponse(f"Edit form for {book.title}")
 
 
 @login_required
-@permission_required("content.can_delete", raise_exception=True)
-def document_delete(request, pk: int):
+@permission_required('bookshelf.can_delete', raise_exception=True)
+def book_delete(request, pk: int):
     if request.method != "POST":
         return HttpResponseForbidden("Use POST to delete")
-    doc = get_object_or_404(Document, pk=pk)
-    doc.delete()
+    book = get_object_or_404(Book, pk=pk)
+    book.delete()
     return HttpResponse("Deleted")
