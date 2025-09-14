@@ -184,11 +184,6 @@ SECURE_BROWSER_XSS_FILTER = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
-# Optional hardening (good practice in real prod):
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_SSL_REDIRECT = True
 
 # --- CONTENT SECURITY POLICY (django-csp)
 INSTALLED_APPS = [
@@ -206,3 +201,38 @@ CSP_STYLE_SRC = ("'self'",)
 CSP_IMG_SRC = ("'self'", "data:")
 CSP_CONNECT_SRC = ("'self'",)
 CSP_FONT_SRC = ("'self'", "data:")
+
+
+def env_bool(name: str, default: bool) -> bool:
+    return str(os.environ.get(name, str(default))).lower() in ("1", "true", "t", "yes", "y")
+
+
+# --- Core prod toggles (set via environment) ---
+DEBUG = env_bool("DJANGO_DEBUG", False)
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
+# If you're behind a reverse proxy/Load Balancer that terminates TLS (Nginx, ELB, Cloudflare),
+# this tells Django to trust the X-Forwarded-Proto header to detect HTTPS correctly.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# --- HTTPS enforcement ---
+# Redirect all HTTP requests to HTTPS in production.
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
+
+# HTTP Strict Transport Security (HSTS). Once enabled in prod, keep it on.
+SECURE_HSTS_SECONDS = int(os.environ.get(
+    "DJANGO_SECURE_HSTS_SECONDS", 31536000))  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", True)
+SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", True)
+
+# --- Secure cookies (HTTPS-only) ---
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# --- Browser-side protections ---
+X_FRAME_OPTIONS = "DENY"                    # Clickjacking protection
+SECURE_CONTENT_TYPE_NOSNIFF = True          # Stop MIME sniffing
+# Kept for the exercise—even though modern browsers deprecate it
+SECURE_BROWSER_XSS_FILTER = True
