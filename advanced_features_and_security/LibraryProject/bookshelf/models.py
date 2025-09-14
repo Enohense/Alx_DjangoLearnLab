@@ -1,6 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
+
+
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=120)
+    published_year = models.IntegerField(null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="owned_books", null=True, blank=True
+    )
+
+    class Meta:
+        permissions = [
+            ("can_view", "Can view book (custom)"),
+            ("can_create", "Can create book (custom)"),
+            ("can_edit", "Can edit book (custom)"),
+            ("can_delete", "Can delete book (custom)"),
+        ]
+
+    def __str__(self):
+        return self.title
 
 
 class CustomUserManager(BaseUserManager):
