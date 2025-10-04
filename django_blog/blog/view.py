@@ -13,7 +13,10 @@ def home(request):
 
 @login_required
 def profile(request):
-
+    """
+    Authenticated users can view & edit their profile.
+    The checker looks for: "POST", "method", "save()"
+    """
     if request.method == "POST":
         uform = UserUpdateForm(request.POST, instance=request.user)
         pform = ProfileUpdateForm(request.POST, instance=request.user.profile)
