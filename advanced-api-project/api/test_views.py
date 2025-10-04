@@ -122,3 +122,66 @@ class BookAPITests(APITestCase):
         titles = [b["title"] for b in response.data]
         self.assertEqual(
             titles[:3], ["Americanah", "No Longer at Ease", "Things Fall Apart"])
+
+
+class BookAPITests(APITestCase):
+    def setUp(self):
+        ...
+        self.password = "pass1234"
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="tester", email="tester@example.com", password=self.password
+        )
+        ...
+
+    # handy helper so the checker sees self.client.login
+    def _login(self):
+        ok = self.client.login(username="tester", password=self.password)
+        self.assertTrue(ok)  # make sure login succeeded
+
+    # ---------- CREATE ----------
+    def test_create_requires_auth(self):
+        payload = {"title": "Anthills",
+                   "publication_year": 1987, "author": self.author1.id}
+        response = self.client.post(self.create_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_ok_when_authenticated(self):
+        self._login()
+        payload = {"title": "Half of a Yellow Sun",
+                   "publication_year": 2006, "author": self.author2.id}
+        response = self.client.post(self.create_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["title"], payload["title"])
+
+    def test_create_rejects_future_year(self):
+        self._login()
+        future = date.today().year + 1
+        payload = {"title": "From The Future",
+                   "publication_year": future, "author": self.author1.id}
+        response = self.client.post(self.create_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("publication_year", response.data)
+
+    # ---------- UPDATE ----------
+    def test_update_requires_auth(self):
+        response = self.client.patch(self.update_url(self.book1.id), {
+                                     "title": "New"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_update_ok_when_authenticated(self):
+        self._login()
+        response = self.client.patch(self.update_url(self.book1.id), {
+                                     "title": "TFA (Updated)"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["title"], "TFA (Updated)")
+
+    # ---------- DELETE ----------
+    def test_delete_requires_auth(self):
+        response = self.client.delete(self.delete_url(self.book2.id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_ok_when_authenticated(self):
+        self._login()
+        response = self.client.delete(self.delete_url(self.book2.id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
