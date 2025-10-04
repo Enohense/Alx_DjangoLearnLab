@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db import models
@@ -33,3 +34,7 @@ class Profile(models.Model):
 def create_profile_for_new_user(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+
+
+def get_absolute_url(self):
+    return reverse("post-detail", kwargs={"pk": self.pk})

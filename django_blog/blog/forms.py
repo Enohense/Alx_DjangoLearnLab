@@ -1,3 +1,4 @@
+from .models import Post
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -30,3 +31,14 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ("bio",)
+
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        # author set in view, published_date auto
+        fields = ["title", "content"]
+        widgets = {
+            "title": forms.TextInput(attrs={"placeholder": "Title"}),
+            "content": forms.Textarea(attrs={"rows": 8, "placeholder": "Write your post..."}),
+        }

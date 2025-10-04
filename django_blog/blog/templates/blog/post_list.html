@@ -1,0 +1,25 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>All Posts</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+  <h1>All Posts</h1>
+  {% if user.is_authenticated %}
+    <p><a href="{% url 'post-create' %}">+ New Post</a></p>
+  {% endif %}
+  <ul>
+    {% for post in posts %}
+      <li>
+        <a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a>
+        <small>by {{ post.author.username }} — {{ post.published_date|date:"Y-m-d H:i" }}</small>
+      </li>
+    {% empty %}
+      <li>No posts yet.</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
