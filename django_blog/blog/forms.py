@@ -1,3 +1,4 @@
+from .models import Comment
 from .models import Post
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -42,3 +43,13 @@ class PostForm(forms.ModelForm):
             "title": forms.TextInput(attrs={"placeholder": "Title"}),
             "content": forms.Textarea(attrs={"rows": 8, "placeholder": "Write your post..."}),
         }
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["content"]
+        widgets = {
+            "content": forms.Textarea(attrs={"rows": 4, "placeholder": "Write your comment…"}),
+        }
+        help_texts = {"content": "Be respectful and keep it constructive."}
