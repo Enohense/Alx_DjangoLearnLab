@@ -1,0 +1,9 @@
+:root { --text:#222; --muted:#666; --bg:#fafafa; --card:#fff; --border:#e7e7e7; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--text); }
+a { color: inherit; text-decoration: none; }
+.container { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+header h1 { margin: 0; }
+.post-list { list-style: none; padding: 0; display: grid; gap: 1rem; }
+.post { background: var(--card); border:1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; }
+.meta { color: var(--muted); margin-top: .25rem; font-size: .9rem; }

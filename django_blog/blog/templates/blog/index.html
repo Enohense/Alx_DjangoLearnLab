@@ -1,0 +1,17 @@
+{% extends "blog/base.html" %}
+{% block title %}Home • My Django Blog{% endblock %}
+{% block content %}
+  {% if posts %}
+    <ul class="post-list">
+      {% for post in posts %}
+        <li class="post">
+          <h2>{{ post.title }}</h2>
+          <p class="meta">by {{ post.author }} • {{ post.published_date|date:"M d, Y H:i" }}</p>
+          <p>{{ post.content|linebreaksbr }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts yet. Log into <a href="/admin/">admin</a> to add one.</p>
+  {% endif %}
+{% endblock %}
