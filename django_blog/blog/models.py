@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+from taggit.managers import TaggableManager
 
 
 class Post(models.Model):
@@ -16,6 +17,7 @@ class Post(models.Model):
     author = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE, related_name="posts"
     )
+    tags = TaggableManager(blank=True)
 
     class Meta:
         ordering = ["-published_date"]  # newest first

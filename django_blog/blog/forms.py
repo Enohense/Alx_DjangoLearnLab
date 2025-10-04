@@ -36,10 +36,14 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
+        tags_csv = forms.CharField(
+        required=False,
+        label="Tags",
+        help_text="Comma-separated (e.g. django, web, tips)"
+    )
     class Meta:
         model = Post
-        # author set in view, published_date auto
-        fields = ["title", "content"]
+        fields = ["title", "content", "tags"]
         widgets = {
             "title": forms.TextInput(attrs={"placeholder": "Title"}),
             "content": forms.Textarea(attrs={"rows": 8, "placeholder": "Write your post..."}),
@@ -56,13 +60,6 @@ class CommentForm(forms.ModelForm):
         help_texts = {"content": "Be respectful and keep it constructive."}
 
 
-class PostForm(forms.ModelForm):
-    # New: comma separated tags
-    tags_csv = forms.CharField(
-        required=False,
-        label="Tags",
-        help_text="Comma-separated (e.g. django, web, tips)"
-    )
 
     class Meta:
         model = Post

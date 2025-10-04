@@ -1,3 +1,4 @@
+from taggit.models import Tag
 from .models import Post, Tag
 from django.views.generic import ListView
 from django.db.models import Q
@@ -193,4 +194,49 @@ class SearchResultsView(ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
+        return ctx
+
+
+class SearchResultsView(ListView):
+    model = Post
+    template_name = "blog/search_results.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        q = self.request.GET.get("q", "").strip()
+        if not q:
+            return Post.objects.none()
+        return (
+            Post.objects.filter(
+                Q(title__icontains=q) |
+                Q(content__icontains=q) |
+                Q(tags__name__icontains=q)
+            )
+            .select_related("author")
+            .prefetch_related("tags")
+            .distinct()
+            .order_by("-published_date")
+        )
+
+
+class PostsByTagListView(ListView):
+    model = Post
+    template_name = "blog/tag_posts.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        # taggit has Tag with slug & name
+        tag = Tag.objects.filter(slug=self.kwargs["slug"]).first()
+        if not tag:
+            return Post.objects.none()
+        return (
+            Post.objects.filter(tags__in=[tag])
+            .select_related("author")
+            .prefetch_related("tags")
+            .order_by("-published_date")
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["tag"] = Tag.objects.filter(slug=self.kwargs["slug"]).first()
         return ctx
