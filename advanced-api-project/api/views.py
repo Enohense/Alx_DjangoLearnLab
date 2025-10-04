@@ -3,6 +3,7 @@ from .models import Book
 from rest_framework import generics, permissions
 from rest_framework import viewsets
 from .models import Author, Book
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .serializers import AuthorSerializer, BookSerializer
 
 
