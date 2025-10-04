@@ -5,21 +5,19 @@ from .forms import RegistrationForm, UserUpdateForm, ProfileUpdateForm
 
 
 def register(request):
-    """Register a new user using our extended form."""
     if request.method == "POST":
         form = RegistrationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Account created! You can now log in.")
+            messages.success(request, "Account created. Please log in.")
             return redirect("login")
     else:
         form = RegistrationForm()
-    return render(request, "auth/register.html", {"form": form})
+    return render(request, "blog/register.html", {"form": form})
 
 
 @login_required
 def profile(request):
-    """View and edit user profile."""
     if request.method == "POST":
         uform = UserUpdateForm(request.POST, instance=request.user)
         pform = ProfileUpdateForm(request.POST, instance=request.user.profile)
@@ -31,9 +29,4 @@ def profile(request):
     else:
         uform = UserUpdateForm(instance=request.user)
         pform = ProfileUpdateForm(instance=request.user.profile)
-
-    return render(
-        request,
-        "auth/profile.html",
-        {"uform": uform, "pform": pform},
-    )
+    return render(request, "blog/profile.html", {"uform": uform, "pform": pform})
