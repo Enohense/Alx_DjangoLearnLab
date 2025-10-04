@@ -13,16 +13,12 @@ def home(request):
 
 @login_required
 def profile(request):
-    """
-    Authenticated users can view & edit their profile.
-    The checker looks for: "POST", "method", "save()"
-    """
     if request.method == "POST":
         uform = UserUpdateForm(request.POST, instance=request.user)
         pform = ProfileUpdateForm(request.POST, instance=request.user.profile)
         if uform.is_valid() and pform.is_valid():
-            uform.save()   # save()
-            pform.save()   # save()
+            uform.save()
+            pform.save()
             messages.success(request, "Profile updated.")
             return redirect("profile")
     else:
