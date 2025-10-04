@@ -1,3 +1,4 @@
+from django.utils.text import slugify
 from .models import Post  # if this is the same file, you already have Post above
 from django.conf import settings
 from django.urls import reverse
@@ -62,3 +63,19 @@ class Comment(models.Model):
     def get_absolute_url(self):
         # handy if you need a direct link for a comment
         return reverse("post-detail", kwargs={"pk": self.post_id})
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=60, unique=True, blank=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)

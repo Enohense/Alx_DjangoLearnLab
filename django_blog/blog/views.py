@@ -1,3 +1,6 @@
+from .models import Post, Tag
+from django.views.generic import ListView
+from django.db.models import Q
 from django.views.generic import CreateView, UpdateView, DeleteView
 from .forms import CommentForm
 from .models import Post, Comment
@@ -142,3 +145,52 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy("post-detail", kwargs={"pk": self.object.post_id})
+
+
+class PostsByTagListView(ListView):
+    model = Post
+    template_name = "blog/tag_posts.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        self.tag = Tag.objects.filter(slug=self.kwargs["slug"]).first()
+        if not self.tag:
+            return Post.objects.none()
+        return (
+            Post.objects.filter(tags=self.tag)
+            .select_related("author")
+            .prefetch_related("tags")
+            .order_by("-published_date")
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["tag"] = self.tag
+        return ctx
+
+
+class SearchResultsView(ListView):
+    model = Post
+    template_name = "blog/search_results.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        q = self.request.GET.get("q", "").strip()
+        if not q:
+            return Post.objects.none()
+        return (
+            Post.objects.filter(
+                Q(title__icontains=q) |
+                Q(content__icontains=q) |
+                Q(tags__name__icontains=q)
+            )
+            .select_related("author")
+            .prefetch_related("tags")
+            .distinct()
+            .order_by("-published_date")
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["q"] = self.request.GET.get("q", "").strip()
+        return ctx

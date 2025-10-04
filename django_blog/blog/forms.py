@@ -1,3 +1,4 @@
+from .models import Post, Comment, Tag
 from .models import Comment
 from .models import Post
 from django import forms
@@ -53,3 +54,56 @@ class CommentForm(forms.ModelForm):
             "content": forms.Textarea(attrs={"rows": 4, "placeholder": "Write your comment…"}),
         }
         help_texts = {"content": "Be respectful and keep it constructive."}
+
+
+class PostForm(forms.ModelForm):
+    # New: comma separated tags
+    tags_csv = forms.CharField(
+        required=False,
+        label="Tags",
+        help_text="Comma-separated (e.g. django, web, tips)"
+    )
+
+    class Meta:
+        model = Post
+        # author/published_date handled elsewhere
+        fields = ["title", "content"]
+        widgets = {
+            "title": forms.TextInput(attrs={"placeholder": "Title"}),
+            "content": forms.Textarea(attrs={"rows": 8, "placeholder": "Write your post..."}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-fill tags_csv when editing
+        if self.instance.pk:
+            names = self.instance.tags.values_list("name", flat=True)
+            self.fields["tags_csv"].initial = ", ".join(names)
+
+    def save(self, commit=True):
+        post = super().save(commit=commit)
+        # Parse and set tags
+        raw = self.cleaned_data.get("tags_csv", "")
+        names = [t.strip() for t in raw.split(",") if t.strip()]
+        # normalize
+        cleaned = []
+        for n in names:
+            # avoid duplicates with different cases/spaces
+            # keep display name as typed; uniqueness is enforced by slug
+            cleaned.append(n)
+
+        # build tags and assign
+        tags = []
+        for name in cleaned:
+            slug = slugify(name)
+            tag, _ = Tag.objects.get_or_create(
+                slug=slug, defaults={"name": name})
+            # if tag already exists but name differs in case, keep original name
+            tags.append(tag)
+
+        if commit:
+            post.tags.set(tags)
+        else:
+            # if not committed yet, postpone assignment to caller
+            self._pending_tags = tags
+        return post
