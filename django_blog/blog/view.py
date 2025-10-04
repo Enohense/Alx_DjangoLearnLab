@@ -1,4 +1,3 @@
-# blog/views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -14,16 +13,13 @@ def home(request):
 
 @login_required
 def profile(request):
-    """
-    Authenticated users can view/edit their profile.
-    MUST include request.method == "POST" and save() calls to satisfy checker.
-    """
+
     if request.method == "POST":
         uform = UserUpdateForm(request.POST, instance=request.user)
         pform = ProfileUpdateForm(request.POST, instance=request.user.profile)
         if uform.is_valid() and pform.is_valid():
-            uform.save()   # <-- save()
-            pform.save()   # <-- save()
+            uform.save()   # save()
+            pform.save()   # save()
             messages.success(request, "Profile updated.")
             return redirect("profile")
     else:
